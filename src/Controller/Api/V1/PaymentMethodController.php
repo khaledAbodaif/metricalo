@@ -23,7 +23,7 @@ class PaymentMethodController extends AbstractController
     #[Route('', name: 'index')]
     public function list(): Response
     {
-        return ApiResponse::data(PaymentMethodEnum::toArray());
+        return ApiResponse::data(PaymentMethodEnum::toArray(true));
     }
 
 }
