@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
  * Helper class to standardize API responses.
+ * Mapper Class
  */
 class ApiResponse
 {
@@ -23,6 +24,31 @@ class ApiResponse
             "status" => true,
             "message" => $message,
             "data" => $data
+        ]));
+    }
+
+    /**
+     * Returns a standardized JSON response with the provided data and message.
+     * map the validation errors to [parameter , message]
+     *
+     * @param mixed $data The data to include in the response.
+     * @param string $message The message to include in the response.
+     * @return JsonResponse The JSON response.
+     */
+    public static function error(mixed $data, string $message = "Sorry Something went wrong"): JsonResponse
+    {
+        if ($data instanceof \Symfony\Component\Validator\ConstraintViolationList) {
+            $errorMessages = [];
+            foreach ($data as $error) {
+                $errorMessages[] = ["parameter" => $error->getPropertyPath(), "message" => $error->getMessage()];
+            }
+            $data = $errorMessages;
+        }
+        
+        return JsonResponse::fromJsonString(json_encode([
+            "status" => false,
+            "message" => $message,
+            "errors" => $data
         ]));
     }
 
