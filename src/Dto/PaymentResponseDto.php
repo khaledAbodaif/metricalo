@@ -2,7 +2,9 @@
 
 namespace App\Dto;
 
+use Symfony\Component\Serializer\Annotation\Context;
 use Symfony\Component\Serializer\Annotation\Groups;
+use Symfony\Component\Serializer\Normalizer\DateTimeNormalizer;
 
 class PaymentResponseDto
 {
@@ -16,7 +18,7 @@ class PaymentResponseDto
     private ?string $transactionId;
 
     #[Groups(['read'])]
-    private ?int $dateOfCreating;
+    private \DateTimeInterface $dateOfCreating;
 
     #[Groups(['read'])]
     private ?string $cardBin;
@@ -52,11 +54,11 @@ class PaymentResponseDto
     {
         $this->transactionId = $transactionId;
     }
-    public function getDateOfCreating(): ?int
+    public function getDateOfCreating(): \DateTimeInterface
     {
         return $this->dateOfCreating;
     }
-    public function setDateOfCreating(?int $dateOfCreating): void
+    public function setDateOfCreating(\DateTimeInterface $dateOfCreating): void
     {
         $this->dateOfCreating = $dateOfCreating;
     }

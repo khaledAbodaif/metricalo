@@ -55,7 +55,7 @@ class Shift4PaymentService implements IPaymentInterface
             $this->paymentResponseDto->setAmount($response->getResponse()['amount']);
             $this->paymentResponseDto->setCurrency($response->getResponse()['currency']);
             $this->paymentResponseDto->setTransactionId($response->getResponse()['id']);
-            $this->paymentResponseDto->setDateOfCreating($response->getResponse()['created']);
+            $this->paymentResponseDto->setDateOfCreating(new \DateTime("@".$response->getResponse()['created'].""));
             $this->paymentResponseDto->setCardBin($response->getResponse()['card']['first6']);
         }
 
