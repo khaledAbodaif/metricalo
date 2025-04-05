@@ -37,14 +37,7 @@ class ApiResponse
      */
     public static function error(mixed $data, string $message = "Sorry Something went wrong"): JsonResponse
     {
-        if ($data instanceof \Symfony\Component\Validator\ConstraintViolationList) {
-            $errorMessages = [];
-            foreach ($data as $error) {
-                $errorMessages[] = ["parameter" => $error->getPropertyPath(), "message" => $error->getMessage()];
-            }
-            $data = $errorMessages;
-        }
-        
+
         return JsonResponse::fromJsonString(json_encode([
             "status" => false,
             "message" => $message,
