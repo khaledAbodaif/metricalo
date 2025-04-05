@@ -33,6 +33,10 @@ class PaymentController extends AbstractController
 
             $paymentResponse = $this->paymentFactory->get($method)->init($paymentDto)->pay();
 
+            if (!$paymentResponse->getResponse()->getStatus()) {
+                return ApiResponse::error([], "Payment failed !", Response::HTTP_FAILED_DEPENDENCY);
+            }
+
             $data = $this->serializer->normalize($paymentResponse, null, ['groups' => ['read']]);
             return ApiResponse::data($data, "Payment processed successfully");
 
