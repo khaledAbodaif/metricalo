@@ -21,6 +21,7 @@ class PaymentResponseDto
     #[Groups(['read'])]
     private ?string $cardBin;
     private ?array $payload;
+    private ?HttpResponseDto $response;
 
 
     public function getAmount(): ?float
@@ -77,4 +78,13 @@ class PaymentResponseDto
         $this->payload = $payload;
     }
 
+    public function getResponse(): ?HttpResponseDto
+    {
+        return $this->response;
+    }
+
+    public function setResponse(?HttpResponseDto $response): void
+    {
+        $this->response = $response;
+    }
 }
