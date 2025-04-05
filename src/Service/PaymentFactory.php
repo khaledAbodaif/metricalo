@@ -20,8 +20,7 @@ class PaymentFactory
     public function get(PaymentMethodEnum $method): IPaymentInterface|\Exception
     {
 
-        $className = 'Service\\' . $this->formatString($method->name) . 'PaymentService';
-
+        $className = 'App\\Service\\' . $this->formatString($method->name) . 'PaymentService';
         if (class_exists($className))
             return new $className();
 
