@@ -31,7 +31,7 @@ class HttpHelper
             $httpClient = HttpClient::create();
 
             $this->httpResponse->setResponse($httpClient->request('POST', $this->url, [
-                'json' => $this->payload,
+                'body' => $this->payload,
                 'headers' => $this->headers
             ])->toArray());
 
