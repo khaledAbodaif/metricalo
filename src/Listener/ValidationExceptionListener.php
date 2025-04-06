@@ -9,6 +9,11 @@ use Symfony\Component\Validator\Exception\ValidationFailedException;
 class ValidationExceptionListener
 {
 
+    /**
+     * Handles kernel exceptions and maps validation errors to a standardized API response.
+     * For Validation Dtos exceptions and enum parameter
+     * @param ExceptionEvent $event The event that contains the exception.
+     */
     public function onKernelException(ExceptionEvent $event): void
     {
         $throwable = $event->getThrowable();
