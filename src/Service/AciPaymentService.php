@@ -6,7 +6,14 @@ use App\Contract\IPaymentInterface;
 use App\Dto\HttpResponseDto;
 use App\Dto\PaymentDto;
 use App\Dto\PaymentResponseDto;
+use App\Event\PaymentFailedEvent;
+use App\Event\PaymentSuccessEvent;
+use App\Exception\PaymentException;
 use App\Helper\HttpHelper;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\HttpKernel\Log\Logger;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class AciPaymentService implements IPaymentInterface
 {
@@ -20,16 +27,22 @@ class AciPaymentService implements IPaymentInterface
 
     private PaymentDto $paymentDto;
     private PaymentResponseDto $paymentResponseDto;
+    private LoggerInterface $logger;
+    private EventDispatcherInterface $dispatcher;
+
 
 
     public function init(PaymentDto $payment): IPaymentInterface
     {
         $this->paymentDto = $payment;
         $this->paymentResponseDto = new PaymentResponseDto();
+        $this->logger = new Logger();
+        $this->dispatcher = new EventDispatcher();
+
         return $this;
     }
 
-    private function prepareChargePayload(): void
+    public function prepareChargePayload(): void
     {
         $this->paymentResponseDto->setPayload([
             'entityId' => self::ENTITY_ID,
@@ -49,7 +62,7 @@ class AciPaymentService implements IPaymentInterface
     }
 
 
-    private function prepareChargeResponse(HttpResponseDto $response): void
+    public function prepareChargeResponse(HttpResponseDto $response): void
     {
 
         $this->paymentResponseDto->setResponse($response);
@@ -61,6 +74,26 @@ class AciPaymentService implements IPaymentInterface
             $this->paymentResponseDto->setTransactionId($response->getResponse()['id']);
             $this->paymentResponseDto->setDateOfCreating( new \DateTime($response->getResponse()['timestamp']));
             $this->paymentResponseDto->setCardBin($response->getResponse()['card']['bin']);
+
+            $this->dispatcher->dispatch(
+                new PaymentSuccessEvent(
+                    $this->paymentResponseDto
+                ),
+                PaymentSuccessEvent::NAME
+            );
+
+        }else{
+            $this->logger->error('AciPaymentService:pay:http', [
+                'payload' => $this->paymentResponseDto->getPayload(),
+                'response' => $this->paymentResponseDto->getResponse()
+            ]);
+
+            $this->dispatcher->dispatch(
+                new PaymentFailedEvent(
+                    $this->paymentResponseDto
+                ),
+                PaymentFailedEvent::NAME
+            );
         }
 
 
@@ -69,20 +102,30 @@ class AciPaymentService implements IPaymentInterface
     public function pay(): PaymentResponseDto
     {
 
-        $this->prepareChargePayload();
+        try {
 
-        $response = HttpHelper::make()
-            ->setUrl(self::CHARGE_URL)
-            ->setHeaders([
-                'Authorization' => 'Bearer ' . self::TOKEN,
-                'Content-Type' => 'application/json',
-            ])
-            ->setPayload($this->paymentResponseDto->getPayload())
-            ->post()
-            ->getResponse();
+            $this->prepareChargePayload();
 
-        $this->prepareChargeResponse($response);
+            $response = HttpHelper::make()
+                ->setUrl(self::CHARGE_URL)
+                ->setHeaders([
+                    'Authorization' => 'Bearer ' . self::TOKEN,
+                    'Content-Type' => 'application/json',
+                ])
+                ->setPayload($this->paymentResponseDto->getPayload())
+                ->post()
+                ->getResponse();
 
+            $this->prepareChargeResponse($response);
+        }catch (\Exception $exception){
+            error_log('AciPaymentService:pay:internal', [
+                'exception' => $exception->getMessage(),
+                'payload' => $this->paymentResponseDto->getPayload(),
+                'response' => $this->paymentResponseDto->getResponse()
+            ]);
+
+           throw new PaymentException("An error occurred while parsing payment data : " . $exception->getMessage());
+        }
         return $this->paymentResponseDto;
     }
 }

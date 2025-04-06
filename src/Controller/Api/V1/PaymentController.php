@@ -6,6 +6,7 @@ use App\Dto\PaymentDto;
 use App\Enum\PaymentMethodEnum;
 use App\Helper\ApiResponse;
 use App\Service\PaymentFactory;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Response;
@@ -42,7 +43,7 @@ class PaymentController extends AbstractController
 
         } catch (\Throwable $e) {
 
-            return ApiResponse::error([], "Payment failed !", Response::HTTP_FAILED_DEPENDENCY);
+            return ApiResponse::error([], "Payment failed ! : Contact the support", Response::HTTP_FAILED_DEPENDENCY);
         }
 
 

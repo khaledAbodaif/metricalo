@@ -12,6 +12,10 @@ class PaymentFactory
      *
      * get the payment class that the user want
      * if not exist return ex
+     *  the enum name reflect to payment class name
+     *  for example ACI the class is AciPaymentService
+     *  for example PAYMENT_NAME the class is PaymentNamePaymentService
+     *
      * @param PaymentMethodEnum $method
      * @return \Exception|IPaymentInterface
      * @throws \Exception
