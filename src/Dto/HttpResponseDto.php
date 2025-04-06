@@ -20,7 +20,7 @@ class HttpResponseDto
         ];
     }
 
-    public function getStatus(): string
+    public function getStatus(): bool
     {
         return $this->status;
     }
