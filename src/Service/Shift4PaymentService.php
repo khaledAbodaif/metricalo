@@ -6,7 +6,10 @@ use App\Contract\IPaymentInterface;
 use App\Dto\HttpResponseDto;
 use App\Dto\PaymentDto;
 use App\Dto\PaymentResponseDto;
+use App\Exception\PaymentException;
 use App\Helper\HttpHelper;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\HttpKernel\Log\Logger;
 
 class Shift4PaymentService implements IPaymentInterface
 {
@@ -19,18 +22,21 @@ class Shift4PaymentService implements IPaymentInterface
 
     private PaymentDto $paymentDto;
     private PaymentResponseDto $paymentResponseDto;
+    private LoggerInterface $logger;
 
 
     public function init(PaymentDto $payment): IPaymentInterface
     {
         $this->paymentDto = $payment;
         $this->paymentResponseDto = new PaymentResponseDto();
+        $this->logger = new Logger();
+
         return $this;
     }
 
 
     // to allow OC principle if we want charge with card token
-    public function prepareChargePayload() : void
+    public function prepareChargePayload(): void
     {
         $this->paymentResponseDto->setPayload([
             'amount' => $this->paymentDto->getAmount(),
@@ -50,34 +56,50 @@ class Shift4PaymentService implements IPaymentInterface
 
         $this->paymentResponseDto->setResponse($response);
 
-        if ($response->getStatus()){
+        if ($response->getStatus()) {
             // successful event
             $this->paymentResponseDto->setAmount($response->getResponse()['amount']);
             $this->paymentResponseDto->setCurrency($response->getResponse()['currency']);
             $this->paymentResponseDto->setTransactionId($response->getResponse()['id']);
-            $this->paymentResponseDto->setDateOfCreating(new \DateTime("@".$response->getResponse()['created'].""));
+            $this->paymentResponseDto->setDateOfCreating(new \DateTime("@" . $response->getResponse()['created'] . ""));
             $this->paymentResponseDto->setCardBin($response->getResponse()['card']['first6']);
+        }else{
+            $this->logger->error('AciPaymentService:pay:http', [
+                'payload' => $this->paymentResponseDto->getPayload(),
+                'response' => $this->paymentResponseDto->getResponse()
+            ]);
         }
 
 
     }
+
     public function pay(): PaymentResponseDto
     {
 
-        $this->prepareChargePayload();
+        try {
+            $this->prepareChargePayload();
 
-        $response = HttpHelper::make()
-            ->setUrl(self::CHARGE_URL)
-            ->setHeaders([
-                'Authorization' => 'Basic ' . base64_encode(self::TOKEN .":".self::PASSWORD),
-                'Content-Type' => 'application/json',
-            ])
-            ->setPayload($this->paymentResponseDto->getPayload())
-            ->post()
-            ->getResponse();
+            $response = HttpHelper::make()
+                ->setUrl(self::CHARGE_URL)
+                ->setHeaders([
+                    'Authorization' => 'Basic ' . base64_encode(self::TOKEN . ":" . self::PASSWORD),
+                    'Content-Type' => 'application/json',
+                ])
+                ->setPayload($this->paymentResponseDto->getPayload())
+                ->post()
+                ->getResponse();
 
 
-        $this->prepareChargeResponse($response);
+            $this->prepareChargeResponse($response);
+        } catch (\Exception $exception) {
+            error_log('AciPaymentService:pay:internal', [
+                'exception' => $exception->getMessage(),
+                'payload' => $this->paymentResponseDto->getPayload(),
+                'response' => $this->paymentResponseDto->getResponse()
+            ]);
+
+            throw new PaymentException("An error occurred while parsing payment data : " . $exception->getMessage());
+        }
 
 
         return $this->paymentResponseDto;
