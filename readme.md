@@ -135,7 +135,8 @@ bin/console app:store-payment {method} [payload]
 ```
 **Example:**
 ```bash
-bin/console app:store-payment ACI '{"amount":92.00,"currency":"EUR","cardNumber":"4242424242424242","cardExpYear":2030,"cardExpMonth":12,"cardCvv":"123"}'
+bin/console app:store-payment aci '{"amount":92.00,"currency":"EUR","cardNumber":"4242424242424242","cardExpYear":2030,"cardExpMonth":"12","cardCvv":"123"}'
+bin/console app:store-payment shift4
 ```
 **Interactive Mode**  (when payload isn't provided there is asking prompts):
 
