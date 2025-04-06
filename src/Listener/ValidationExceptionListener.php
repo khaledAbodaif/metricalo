@@ -4,6 +4,7 @@ namespace App\Listener;
 
 use App\Helper\ApiResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 class ValidationExceptionListener
@@ -19,13 +20,15 @@ class ValidationExceptionListener
         $throwable = $event->getThrowable();
         $validationException = null;
         $errors = [];
-
         if ($throwable instanceof ValidationFailedException) {
             $validationException = $throwable;
         } elseif ($throwable->getPrevious() instanceof ValidationFailedException) {
             $validationException = $throwable->getPrevious();
         } elseif ($throwable->getPrevious() instanceof \ValueError && str_contains($throwable->getMessage(), 'is not a valid backing value')) {
-            $errors['parameter'] = "Please Enter a valid data";
+            $errors['parameter'] = "Please Enter a valid parameter";
+            $event->setResponse(ApiResponse::error($errors, "Validation Error", 422));
+        }elseif ($throwable instanceof HttpException) {
+            $errors['body'] = "Please Enter a valid request body";
             $event->setResponse(ApiResponse::error($errors, "Validation Error", 422));
         }
 
