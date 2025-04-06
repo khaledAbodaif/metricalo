@@ -30,7 +30,7 @@ class Shift4PaymentService implements IPaymentInterface
 
 
     // to allow OC principle if we want charge with card token
-    private function prepareChargePayload() : void
+    public function prepareChargePayload() : void
     {
         $this->paymentResponseDto->setPayload([
             'amount' => $this->paymentDto->getAmount(),
@@ -45,7 +45,7 @@ class Shift4PaymentService implements IPaymentInterface
 
     }
 
-    private function prepareChargeResponse(HttpResponseDto $response): void
+    public function prepareChargeResponse(HttpResponseDto $response): void
     {
 
         $this->paymentResponseDto->setResponse($response);

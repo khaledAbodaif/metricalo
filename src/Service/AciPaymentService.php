@@ -29,7 +29,7 @@ class AciPaymentService implements IPaymentInterface
         return $this;
     }
 
-    private function prepareChargePayload(): void
+    public function prepareChargePayload(): void
     {
         $this->paymentResponseDto->setPayload([
             'entityId' => self::ENTITY_ID,
@@ -49,7 +49,7 @@ class AciPaymentService implements IPaymentInterface
     }
 
 
-    private function prepareChargeResponse(HttpResponseDto $response): void
+    public function prepareChargeResponse(HttpResponseDto $response): void
     {
 
         $this->paymentResponseDto->setResponse($response);
