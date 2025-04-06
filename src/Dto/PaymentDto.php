@@ -24,7 +24,7 @@ class PaymentDto
 
     #[Assert\NotBlank]
     #[Assert\Range(min: 1, max: 12)]
-    private int $cardExpMonth;
+    private string $cardExpMonth;
 
     #[Assert\NotBlank]
     #[Assert\Range(min: 2023, max: 2100)]
@@ -75,12 +75,12 @@ class PaymentDto
     {
         $this->cardExpYear = $cardExpYear;
     }
-    public function getCardExpMonth(): int
+    public function getCardExpMonth(): string
     {
         return $this->cardExpMonth;
     }
 
-    public function setCardExpMonth(int $cardExpMonth): void
+    public function setCardExpMonth(string $cardExpMonth): void
     {
         $this->cardExpMonth = $cardExpMonth;
     }
